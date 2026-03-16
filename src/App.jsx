@@ -17,6 +17,16 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+import { 
+  BrowserRouter as Router, 
+  Routes, 
+  Route, 
+  Navigate,
+  Link 
+} from 'react-router-dom';
+import Login from './Login';
+import Register from './Register';
+
 // Mock initial data
 const INITIAL_SCHOOLS = [
   { id: 1, name: "St. Mary's Academy", location: "New York, USA", students: 1200, type: "Private", established: "1995" },
@@ -136,16 +146,16 @@ const SchoolModal = ({ isOpen, onClose, onSubmit, school, mode }) => {
   );
 };
 
-function App() {
+const Dashboard = () => {
   const [schools, setSchools] = useState(INITIAL_SCHOOLS);
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState('add');
   const [editingSchool, setEditingSchool] = useState(null);
 
-  const filteredSchools = schools.filter(school => 
-    school.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    school.location.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredSchools = (schools || []).filter(school => 
+    (school.name ? school.name.toLowerCase() : "").includes(searchQuery.toLowerCase()) ||
+    (school.location ? school.location.toLowerCase() : "").includes(searchQuery.toLowerCase())
   );
 
   const handleAddSchool = (newSchool) => {
@@ -177,7 +187,7 @@ function App() {
   };
 
   return (
-    <div className="app-container">
+    <div className="app-container animate-fade-in">
       {/* Sidebar */}
       <aside className="sidebar">
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
@@ -200,9 +210,9 @@ function App() {
         </nav>
 
         <div style={{ marginTop: 'auto' }}>
-          <button className="btn btn-ghost" style={{ width: '100%', justifyContent: 'flex-start', color: '#ef4444' }}>
+          <Link to="/" className="btn btn-ghost" style={{ width: '100%', justifyContent: 'flex-start', color: '#ef4444', textDecoration: 'none' }}>
             <LogOut size={20} /> Logout
-          </button>
+          </Link>
         </div>
       </aside>
 
@@ -222,8 +232,8 @@ function App() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '3rem' }}>
           {[
             { label: 'Total Schools', value: schools.length, icon: <School size={20} />, color: 'var(--primary)' },
-            { label: 'Total Students', value: schools.reduce((acc, s) => acc + parseInt(s.students || 0), 0).toLocaleString(), icon: <Users size={20} />, color: 'var(--accent)' },
-            { label: 'Active Regions', value: new Set(schools.map(s => s.location)).size, icon: <MapPin size={20} />, color: 'var(--success)' },
+            { label: 'Total Students', value: schools.reduce((acc, s) => acc + (parseInt(s.students) || 0), 0).toLocaleString(), icon: <Users size={20} />, color: 'var(--accent)' },
+            { label: 'Active Regions', value: new Set(schools.map(s => s.location).filter(Boolean)).size, icon: <MapPin size={20} />, color: 'var(--success)' },
           ].map((stat, i) => (
             <div key={i} className="glass-card" style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
               <div style={{ background: `${stat.color}20`, color: stat.color, padding: '0.75rem', borderRadius: '1rem' }}>
@@ -312,6 +322,19 @@ function App() {
         onSubmit={modalMode === 'add' ? handleAddSchool : handleEditSchool}
       />
     </div>
+  );
+};
+
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Router>
   );
 }
 
